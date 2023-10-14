@@ -1,0 +1,5 @@
+/node_modules
+/src/day*/example.ts
+/src/day*/input.ts
+!/src/day00/example.ts
+!/src/day00/input.ts

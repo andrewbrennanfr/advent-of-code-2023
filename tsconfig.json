@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "downlevelIteration": true,
+        "exactOptionalPropertyTypes": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noUncheckedIndexedAccess": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "paths": {
+            "@/*": ["./src/*"]
+        },
+        "strict": true,
+        "types": ["bun-types"]
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "name": "advent-of-code-2023",
+    "scripts": {
+        "new": "new() { cp -R ./src/day00 ./src/day$1; sed -i '' s/00/$1/g ./src/day$1/index.spec.ts; }; new",
+        "watch": "watch() { bun test --watch src/day$1; }; watch"
+    },
+    "devDependencies": {
+        "bun-types": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "latest"
+    }
+}
