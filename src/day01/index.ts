@@ -17,6 +17,20 @@ export const sum = (numbers: number[]): number =>
 
 /* -------------------------------------------------------------------------- */
 
+const WORDS = [
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+]
+
+/* -------------------------------------------------------------------------- */
+
 export const part01 = (
     input: string,
     digits = (line: string): string[] =>
@@ -31,4 +45,11 @@ export const part01 = (
         )
     )
 
-export const part02 = (input: string): string => input
+export const part02 = (input: string): string =>
+    part01(input, (line) =>
+        matches(line, new RegExp(`(?=(${["\\d", ...WORDS].join("|")}))`, "g"))
+            .map(nth(1))
+            .map(String)
+            .map((match) => WORDS.indexOf(match) + 1 || match)
+            .map(String)
+    )
