@@ -13,6 +13,9 @@ export const negate =
     (...args) =>
         !func(...args)
 
+export const product = (numbers: number[]): number =>
+    numbers.length && numbers.reduce((product, number) => product * number)
+
 export const prop =
     <T extends object, U extends keyof T>(string: U): ((object: T) => T[U]) =>
     (object) =>
@@ -68,4 +71,7 @@ export const part01 = (
         )
     )
 
-export const part02 = (input: string): string => input
+export const part02 = (input: string): string =>
+    part01(input, (games) =>
+        games.map(({ blue, green, red }) => product([blue, green, red]))
+    )
