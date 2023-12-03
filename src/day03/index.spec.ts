@@ -5,14 +5,14 @@ import { describe, expect, test } from "bun:test"
 
 describe("day03", () => {
     describe("part01", () => {
-        test.skip("example01", () => expect(part01(example01)).toEqual("4361"))
+        test("example01", () => expect(part01(example01)).toEqual("4361"))
 
         test("input01", () => expect(part01(input01)).toEqual("536202"))
     })
 
     describe("part02", () => {
-        test.skip("example01", () => expect(part02(example01)).toEqual(""))
+        test("example01", () => expect(part02(example01)).toEqual("467835"))
 
-        test.skip("input01", () => expect(part02(input01)).toEqual(""))
+        test("input01", () => expect(part02(input01)).toEqual("78272573"))
     })
 })
