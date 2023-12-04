@@ -1,11 +1,20 @@
-export const part01 = (input: string): string => {
-    const lines = input.trim().split("\n")
+const getWinningNumbers = (
+    numbers: string[],
+    winningNumbers: string[]
+): string[] => numbers.filter((number) => winningNumbers.includes(number))
 
-    const cards = lines.map((line) =>
-        line
-            .split(/:|\|/)
-            .map((chunk) => chunk.trim().split(" ").filter(Boolean))
-    )
+const parse = (input: string): [[string, string], string[], string[]][] =>
+    input
+        .trim()
+        .split("\n")
+        .map((line) =>
+            line
+                .split(/:|\|/)
+                .map((chunk) => chunk.trim().split(" ").filter(Boolean))
+        ) as [[string, string], string[], string[]][]
+
+export const part01 = (input: string): string => {
+    const cards = parse(input)
 
     const results = cards
         .map(
@@ -14,8 +23,7 @@ export const part01 = (input: string): string => {
         )
         .map(
             ([winningNumbers, numbers]) =>
-                numbers.filter((number) => winningNumbers.includes(number))
-                    .length
+                getWinningNumbers(numbers, winningNumbers).length
         )
         .filter(Boolean)
 
@@ -30,4 +38,40 @@ export const part01 = (input: string): string => {
     )
 }
 
-export const part02 = (input: string): string => input
+export const part02 = (input: string): string => {
+    const cards = parse(input)
+
+    const totals = cards.reduce(
+        (totals, [[, id], winningNumbers, numbers], i) => {
+            const totalWinning = getWinningNumbers(
+                numbers,
+                winningNumbers
+            ).length
+
+            if (!totalWinning) return totals
+
+            const toUpdate = Array.from(
+                Array(totalWinning),
+                (_, x) => i + 1 + (x + 1)
+            ).map(String)
+
+            const totalForCurrentCard = totals.get(id) ?? 0
+
+            const newTotals = toUpdate.reduce(
+                (newTotals, id) =>
+                    newTotals.set(
+                        id,
+                        (totals.get(id) ?? 0) + totalForCurrentCard
+                    ),
+                totals
+            )
+
+            return newTotals
+        },
+        new Map<string, number>(cards.map(([[, id]]) => [id, 1]))
+    )
+
+    return String(
+        [...totals.values()].reduce((total, number) => total + number)
+    )
+}
