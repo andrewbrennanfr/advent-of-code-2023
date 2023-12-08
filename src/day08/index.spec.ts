@@ -1,5 +1,5 @@
 import { part01, part02 } from "@/day08"
-import { example01, example02 } from "@/day08/example"
+import { example01, example02, example03 } from "@/day08/example"
 import { input01 } from "@/day08/input"
 import { describe, expect, test } from "bun:test"
 
@@ -13,8 +13,8 @@ describe("day08", () => {
     })
 
     describe("part02", () => {
-        test.skip("example01", () => expect(part02(example01)).toEqual(""))
+        test("example03", () => expect(part02(example03)).toEqual("6"))
 
-        test.skip("input01", () => expect(part02(input01)).toEqual(""))
+        test("input01", () => expect(part02(input01)).toEqual("13524038372771"))
     })
 })
