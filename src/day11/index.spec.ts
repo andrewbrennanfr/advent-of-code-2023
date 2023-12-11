@@ -11,8 +11,11 @@ describe("day11", () => {
     })
 
     describe("part02", () => {
-        test.skip("example01", () => expect(part02(example01)).toEqual(""))
+        test("example01", () => {
+            expect(part02(example01, 10)).toEqual("1030")
+            expect(part02(example01, 100)).toEqual("8410")
+        })
 
-        test.skip("input01", () => expect(part02(input01)).toEqual(""))
+        test("input01", () => expect(part02(input01)).toEqual("447073334102"))
     })
 })

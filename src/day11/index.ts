@@ -1,4 +1,4 @@
-export const part01 = (input: string): string => {
+export const part01 = (input: string, factor = 1): string => {
     const universe = input
         .trim()
         .split("\n")
@@ -45,8 +45,8 @@ export const part01 = (input: string): string => {
             })
             .filter(Boolean)
 
-        const rowAdjust = rowGaps.length
-        const colAdjust = colGaps.length
+        const rowAdjust = rowGaps.length * (factor - 1 || 1)
+        const colAdjust = colGaps.length * (factor - 1 || 1)
 
         return `${Number(row) + rowAdjust}_${Number(col) + colAdjust}`
     })
@@ -79,4 +79,5 @@ export const part01 = (input: string): string => {
     return String(distances.reduce((a, b) => a + b, 0))
 }
 
-export const part02 = (input: string): string => input
+export const part02 = (input: string, factor = 1000000): string =>
+    part01(input, factor)
