@@ -1,5 +1,12 @@
-import { part01 } from "@/day10"
-import { example01, example02 } from "@/day10/example"
+import { part01, part02 } from "@/day10"
+import {
+    example01,
+    example02,
+    example03,
+    example04,
+    example05,
+    example06,
+} from "@/day10/example"
 import { input01 } from "@/day10/input"
 import { describe, expect, test } from "bun:test"
 
@@ -12,9 +19,15 @@ describe("day10", () => {
         test("input01", () => expect(part01(input01)).toEqual("6890"))
     })
 
-    // describe.skip("part02", () => {
-    //     test.skip("example01", () => expect(part02(example01)).toEqual(""))
+    describe("part02", () => {
+        test("example03", () => expect(part02(example03)).toEqual("4"))
 
-    //     test.skip("input01", () => expect(part02(input01)).toEqual(""))
-    // })
+        test("example04", () => expect(part02(example04)).toEqual("4"))
+
+        test("example05", () => expect(part02(example05)).toEqual("8"))
+
+        test("example06", () => expect(part02(example06)).toEqual("10"))
+
+        test("input01", () => expect(part02(input01)).toEqual("453"))
+    })
 })
