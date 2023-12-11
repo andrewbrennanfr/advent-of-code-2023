@@ -1,222 +1,149 @@
-const findConnectingCells = (
+const getNextSiblings = (
     grid: string[][],
-    {
-        r,
-        c,
-    }: {
-        r: number
-        c: number
-    }
+    r: number,
+    c: number
 ): { r: number; c: number }[] => {
-    const north = { r: r - 1, c }
-    const east = { r, c: c + 1 }
-    const south = { r: r + 1, c }
-    const west = { r, c: c - 1 }
+    const siblings = getSiblings(r, c)
+    const currentCharacter = getCharacter(grid, r, c)
 
-    const connectingCells = [north, east, south, west].filter((cell) => {
-        const current = grid[r][c]
-        const pipe = grid[cell.r]?.[cell.c]
+    const siblingCharacters = Object.entries(siblings).map(([D, { r, c }]) => [
+        D,
+        getCharacter(grid, r, c),
+    ])
 
-        if (!pipe) {
-            return false
+    const nextSiblings = siblingCharacters.filter(([D, character]) => {
+        if (currentCharacter === "S") {
+            const possibleEntries = {
+                N: ["|", "7", "F"],
+                E: ["-", "J", "7"],
+                S: ["|", "J", "L"],
+                W: ["-", "L", "F"],
+            }
+
+            return possibleEntries[D].includes(character)
         }
 
-        if (pipe === "|") {
-            if (cell === north) {
-                if (["|", "L", "J"].includes(current)) {
-                    return true
-                }
+        if (currentCharacter === "|") {
+            const possibleEntries = {
+                N: ["|", "7", "F"],
+                E: [],
+                S: ["|", "J", "L"],
+                W: [],
             }
 
-            if (cell === south) {
-                if (["|", "7", "F"].includes(current)) {
-                    return true
-                }
-            }
+            return possibleEntries[D].includes(character)
         }
 
-        if (pipe === "-") {
-            if (cell === east) {
-                if (["-", "L", "F"].includes(current)) {
-                    return true
-                }
+        if (currentCharacter === "-") {
+            const possibleEntries = {
+                N: [],
+                E: ["-", "J", "7"],
+                S: [],
+                W: ["-", "L", "F"],
             }
 
-            if (cell === west) {
-                if (["-", "7", "J"].includes(current)) {
-                    return true
-                }
-            }
+            return possibleEntries[D].includes(character)
         }
 
-        if (pipe === "L") {
-            if (cell === south) {
-                if (["|", "7", "F"].includes(current)) {
-                    return true
-                }
+        if (currentCharacter === "L") {
+            const possibleEntries = {
+                N: ["|", "7", "F"],
+                E: ["-", "J", "7"],
+                S: [],
+                W: [],
             }
 
-            if (cell === west) {
-                if (["-", "7", "J"].includes(current)) {
-                    return true
-                }
-            }
+            return possibleEntries[D].includes(character)
         }
 
-        if (pipe === "J") {
-            if (cell === east) {
-                if (["-", "L", "F"].includes(current)) {
-                    return true
-                }
+        if (currentCharacter === "J") {
+            const possibleEntries = {
+                N: ["|", "7", "F"],
+                E: [],
+                S: [],
+                W: ["-", "L", "F"],
             }
 
-            if (cell === south) {
-                if (["|", "7", "F"].includes(current)) {
-                    return true
-                }
-            }
+            return possibleEntries[D].includes(character)
         }
 
-        if (pipe === "7") {
-            if (cell === north) {
-                if (["|", "L", "J"].includes(current)) {
-                    return true
-                }
+        if (currentCharacter === "7") {
+            const possibleEntries = {
+                N: [],
+                E: [],
+                S: ["|", "J", "L"],
+                W: ["-", "L", "F"],
             }
 
-            if (cell === east) {
-                if (["-", "L", "F"].includes(current)) {
-                    return true
-                }
-            }
+            return possibleEntries[D].includes(character)
         }
 
-        if (pipe === "F") {
-            if (cell === north) {
-                if (["|", "L", "J"].includes(current)) {
-                    return true
-                }
+        if (currentCharacter === "F") {
+            const possibleEntries = {
+                N: [],
+                E: ["-", "J", "7"],
+                S: ["|", "J", "L"],
+                W: [],
             }
 
-            if (cell === west) {
-                if (["-", "7", "J"].includes(current)) {
-                    return true
-                }
-            }
+            return possibleEntries[D].includes(character)
         }
 
         return false
     })
 
-    if (connectingCells.length > 2) {
-        throw "More than 2 connecting cells"
-    }
-
-    return connectingCells
+    return nextSiblings.map((nextSibling) => siblings[nextSibling[0]])
 }
 
-const parseGrid = (input: string): string[][] =>
-    input
+const getSiblings = (
+    r: number,
+    c: number
+): Record<"N" | "E" | "S" | "W", { r: number; c: number }> => ({
+    N: { r: r - 1, c },
+    E: { r, c: c + 1 },
+    S: { r: r + 1, c },
+    W: { r, c: c - 1 },
+})
+
+const getCharacter = (
+    grid: string[][],
+    r: number,
+    c: number
+): string | undefined => grid[r]?.[c]
+
+export const part01 = (input: string): string => {
+    const grid = input
         .trim()
         .split("\n")
         .map((row) => row.split(""))
 
-const replaceGridStart = (
-    grid: string[][],
-    start: { r: number; c: number }
-): string[][] => {
-    // const connectingCells = findConnectingCells(grid, start)
+    const startR = grid.findIndex((row) => row.includes("S"))
+    const startC = grid[startR].indexOf("S")
+    const start = { r: startR, c: startC }
+    const startSiblings = getNextSiblings(grid, start.r, start.c)
 
-    const replacedGrid = grid.map((row, r) =>
-        row.map((cell, c) => {
-            if (r === start.r && c === start.c) {
-                // Totally hardcoded for my input
-                if (grid.length > 10) {
-                    return "L"
-                }
+    const loop = new Set<string>()
+    let nextSibling = startSiblings[0]
 
-                return "F"
-            }
+    while (!loop.has(`${nextSibling.r}_${nextSibling.c}`)) {
+        loop.add(`${nextSibling.r}_${nextSibling.c}`)
 
-            return cell
-        })
-    )
+        const current = nextSibling
 
-    return replacedGrid
-}
+        const siblings = getNextSiblings(grid, current.r, current.c)
 
-const traceCellLoops = (
-    grid: string[][],
-    start: { r: number; c: number }
-): { r: number; c: number }[][] => {
-    const connectingCells = findConnectingCells(grid, start)
-
-    const pathsToCheck = connectingCells.map((connectingCell) => [
-        connectingCell,
-    ])
-
-    const possiblePaths: typeof pathsToCheck = []
-
-    // while (pathsToCheck.length) {
-    while (!possiblePaths.length) {
-        const nextPath = pathsToCheck.shift()
-
-        const unvistedConnectingCells = findConnectingCells(
-            grid,
-            nextPath[nextPath.length - 1]
-        ).filter(({ r, c }) =>
-            nextPath.every(
-                (nextPathCell) => nextPathCell.r !== r || nextPathCell.c !== c
-            )
+        const unvisitedSibling = siblings.find(
+            (sibling) => !loop.has(`${sibling.r}_${sibling.c}`)
         )
 
-        if (
-            nextPath.length > 1 &&
-            unvistedConnectingCells.some(
-                ({ r, c }) => r === start.r && c === start.c
-            )
-        ) {
-            const startingCells = unvistedConnectingCells.filter(
-                ({ r, c }) => r === start.r && c === start.c
-            )
-
-            possiblePaths.push(
-                ...startingCells.map((startingCell) => [
-                    ...nextPath,
-                    startingCell,
-                ])
-            )
+        if (!unvisitedSibling) {
+            break
         }
 
-        pathsToCheck.unshift(
-            ...unvistedConnectingCells
-                .filter(({ r, c }) => r !== start.r || c !== start.c)
-                .map((unvisitedConnectingCell) => [
-                    ...nextPath,
-                    unvisitedConnectingCell,
-                ])
-        )
+        nextSibling = unvisitedSibling
     }
 
-    return possiblePaths.map((possiblePath) => [start, ...possiblePath])
-}
-
-export const part01 = (input: string): string => {
-    const grid = parseGrid(input)
-
-    const startR = grid.findIndex((row) => row.includes("S"))
-    const startC = grid[startR].findIndex((cell) => cell.includes("S"))
-    const start = { r: startR, c: startC }
-
-    const replacedGrid = replaceGridStart(grid, start)
-
-    const cellLoops = traceCellLoops(replacedGrid, start)
-
-    const longestDistances = cellLoops.map((cellLoop) =>
-        Math.floor(cellLoop.length / 2)
-    )
-
-    return String(Math.max(...longestDistances))
+    return String(Math.floor((loop.size + 1) / 2))
 }
 
 export const part02 = (input: string): string => input
