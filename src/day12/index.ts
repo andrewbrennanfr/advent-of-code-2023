@@ -1,143 +1,75 @@
+import { memoize } from "@/day03"
+
 export const part01 = (input: string): string => {
     const rows = input
         .trim()
         .split("\n")
         .map((row) => row.split(" "))
-        .map(([start, end]) => [start.split(""), end.split(",")])
+        .map(([start, end]) => [start, end.split(",")] as const)
 
-    const countArrangements = (springs: string[], sizes: number[]): number => {
-        const questionIndexes = springs
-            .map((character, i) => [character, i])
-            .filter(([character]) => character === "?")
-            .map(([, i]) => i)
-            .map(Number)
+    const countArrangements = memoize(
+        (springs: string, sizes: number[], previousSpring: string): number => {
+            const nextSpring = springs[0]
+            const remainingSprings = springs.slice(1)
 
-        const totalHashes = sizes.reduce((a, b) => a + b)
+            if (nextSpring === ".") {
+                if (previousSpring === "#") {
+                    if (sizes[0] !== 0) {
+                        return 0
+                    }
 
-        const possibleCombinations = questionIndexes.reduce<string[][]>(
-            (possibleCombinations, questionIndex, i) => {
-                if (i === 0) {
-                    const untilThisIndex = springs.slice(0, questionIndex)
-                    const dotCombination = untilThisIndex.concat(".")
-                    const hashCombination = untilThisIndex.concat("#")
-
-                    possibleCombinations.push(dotCombination)
-                    possibleCombinations.push(hashCombination)
-
-                    return possibleCombinations
+                    return countArrangements(
+                        remainingSprings,
+                        sizes.slice(1),
+                        nextSpring
+                    )
                 }
 
-                const untilThisIndex = springs.slice(
-                    questionIndexes[i - 1] + 1,
-                    questionIndex
-                )
+                return countArrangements(remainingSprings, sizes, nextSpring)
+            }
 
-                const dotCombination = untilThisIndex.concat(".")
-                const hashCombination = untilThisIndex.concat("#")
-
-                const newPossibleCombinations: typeof possibleCombinations = []
-
-                possibleCombinations.forEach((possibleCombination) => {
-                    if (
-                        possibleCombination.filter(
-                            (character) => character === "#"
-                        ).length > totalHashes
-                    ) {
-                        return
-                    }
-
-                    const hashGroups = possibleCombination.reduce<string[][]>(
-                        (hashGroups, character, i) => {
-                            if (character === "#") {
-                                if (possibleCombination[i - 1] === "#") {
-                                    hashGroups[hashGroups.length - 1].push(
-                                        character
-                                    )
-                                } else {
-                                    hashGroups.push([character])
-                                }
-                            }
-
-                            return hashGroups
-                        },
-                        []
-                    )
-
-                    if (hashGroups.length > sizes.length) {
-                        return
-                    }
-                    if (
-                        hashGroups
-                            .slice(0, -1)
-                            .some(
-                                (hashGroup, i) => hashGroup.length !== sizes[i]
-                            )
-                    ) {
-                        return false
-                    }
-
-                    const possibleDotCombination =
-                        possibleCombination.concat(dotCombination)
-                    newPossibleCombinations.push(possibleDotCombination)
-
-                    const possibleHashCombination =
-                        possibleCombination.concat(hashCombination)
-                    newPossibleCombinations.push(possibleHashCombination)
-                })
-
-                return newPossibleCombinations
-            },
-            []
-        )
-
-        const fullPossibleCombinations = possibleCombinations.map(
-            (possibleCombination) =>
-                possibleCombination.concat(
-                    springs.slice(
-                        questionIndexes[questionIndexes.length - 1] + 1
+            if (nextSpring === "?") {
+                return (
+                    countArrangements(
+                        `#${remainingSprings}`,
+                        sizes,
+                        previousSpring
+                    ) +
+                    countArrangements(
+                        `.${remainingSprings}`,
+                        sizes,
+                        previousSpring
                     )
                 )
-        )
-
-        return fullPossibleCombinations.filter((combination) => {
-            if (
-                combination.filter((character) => character === "#").length !==
-                totalHashes
-            ) {
-                return false
             }
 
-            const hashGroups = combination.reduce<string[][]>(
-                (hashGroups, character, i) => {
-                    if (character === "#") {
-                        if (combination[i - 1] === "#") {
-                            hashGroups[hashGroups.length - 1].push(character)
-                        } else {
-                            hashGroups.push([character])
-                        }
-                    }
+            if (nextSpring === "#") {
+                const [firstSize, ...remainingSizes] = sizes
 
-                    return hashGroups
-                },
-                []
-            )
+                if (!firstSize) {
+                    return 0
+                }
 
-            if (hashGroups.length !== sizes.length) {
-                return false
+                const newFirstSize = firstSize - 1
+
+                return countArrangements(
+                    remainingSprings,
+                    [newFirstSize, ...remainingSizes],
+                    nextSpring
+                )
             }
 
-            if (
-                hashGroups.some((hashGroup, i) => hashGroup.length !== sizes[i])
-            ) {
-                return false
+            if (sizes.some((size) => size > 0)) {
+                return 0
             }
 
-            return true
-        }).length
-    }
+            return 1
+        },
+        JSON.stringify
+    )
 
     const arrangementTotals = rows.map(([springs, sizes]) =>
-        countArrangements(springs, sizes.map(Number))
+        countArrangements(springs, sizes.map(Number), "")
     )
 
     const arrangementSum = arrangementTotals.reduce((a, b) => a + b)
