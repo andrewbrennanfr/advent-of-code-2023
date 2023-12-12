@@ -12,6 +12,8 @@ export const part01 = (input: string): string => {
             .map(([, i]) => i)
             .map(Number)
 
+        const totalHashes = sizes.reduce((a, b) => a + b)
+
         const possibleCombinations = questionIndexes.reduce<string[][]>(
             (possibleCombinations, questionIndex, i) => {
                 if (i === 0) {
@@ -29,18 +31,58 @@ export const part01 = (input: string): string => {
                     questionIndexes[i - 1] + 1,
                     questionIndex
                 )
+
                 const dotCombination = untilThisIndex.concat(".")
                 const hashCombination = untilThisIndex.concat("#")
 
                 const newPossibleCombinations: typeof possibleCombinations = []
 
                 possibleCombinations.forEach((possibleCombination) => {
-                    newPossibleCombinations.push(
+                    if (
+                        possibleCombination.filter(
+                            (character) => character === "#"
+                        ).length > totalHashes
+                    ) {
+                        return
+                    }
+
+                    const hashGroups = possibleCombination.reduce<string[][]>(
+                        (hashGroups, character, i) => {
+                            if (character === "#") {
+                                if (possibleCombination[i - 1] === "#") {
+                                    hashGroups[hashGroups.length - 1].push(
+                                        character
+                                    )
+                                } else {
+                                    hashGroups.push([character])
+                                }
+                            }
+
+                            return hashGroups
+                        },
+                        []
+                    )
+
+                    if (hashGroups.length > sizes.length) {
+                        return
+                    }
+                    if (
+                        hashGroups
+                            .slice(0, -1)
+                            .some(
+                                (hashGroup, i) => hashGroup.length !== sizes[i]
+                            )
+                    ) {
+                        return false
+                    }
+
+                    const possibleDotCombination =
                         possibleCombination.concat(dotCombination)
-                    )
-                    newPossibleCombinations.push(
+                    newPossibleCombinations.push(possibleDotCombination)
+
+                    const possibleHashCombination =
                         possibleCombination.concat(hashCombination)
-                    )
+                    newPossibleCombinations.push(possibleHashCombination)
                 })
 
                 return newPossibleCombinations
@@ -56,8 +98,6 @@ export const part01 = (input: string): string => {
                     )
                 )
         )
-
-        const totalHashes = sizes.reduce((a, b) => a + b)
 
         return fullPossibleCombinations.filter((combination) => {
             if (
