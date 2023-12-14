@@ -4,9 +4,7 @@ const parse = (input: string): string[][] =>
         .split("\n")
         .map((line) => line.split(""))
 
-export const part01 = (input: string): string => {
-    const grid = parse(input)
-
+const tiltNorth = (grid: string[][]): string[][] => {
     const squareRocks = grid
         .map((row, r) =>
             row
@@ -73,9 +71,41 @@ export const part01 = (input: string): string => {
             return rcA[1] - rcB[1]
         })
 
-    const distancedFromBottom = tiltedRoundRocks.map(([r]) => grid.length - r)
+    return grid.map((row, r) =>
+        row.map((_, c) => {
+            if (tiltedRoundRocks.some((rc) => r === rc[0] && c === rc[1])) {
+                return "O"
+            }
+
+            if (squareRocks.some((rc) => r === rc[0] && c === rc[1])) {
+                return "#"
+            }
+
+            return "."
+        })
+    )
+}
+
+const calculateLoad = (grid: string[][]): string => {
+    const roundRocks = grid
+        .map((row, r) =>
+            row
+                .map((col, c) => (col === "O" ? [r, c] : []))
+                .filter((rc) => rc.length)
+        )
+        .flat()
+
+    const distancedFromBottom = roundRocks.map(([r]) => grid.length - r)
 
     return String(distancedFromBottom.reduce((sum, number) => sum + number))
+}
+
+export const part01 = (input: string): string => {
+    const grid = parse(input)
+
+    const titledGrid = tiltNorth(grid)
+
+    return calculateLoad(titledGrid)
 }
 
 export const part02 = (input: string): string => input
