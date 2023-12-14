@@ -5,85 +5,32 @@ const parse = (input: string): string[][] =>
         .map((line) => line.split(""))
 
 const tiltNorth = (grid: string[][]): string[][] => {
-    const squareRocks = grid
-        .map((row, r) =>
-            row
-                .map((col, c) => (col === "#" ? [r, c] : []))
-                .filter((rc) => rc.length)
-        )
-        .flat()
+    for (let i = 0; i < grid.length; i++) {
+        const row = grid[i]
 
-    const roundRocks = grid.map((row, r) =>
-        row
-            .map((col, c) => (col === "O" ? [r, c] : []))
-            .filter((rc) => rc.length)
-    )
+        for (let j = 0; j < row.length; j++) {
+            const cell = row[j]
 
-    const tiltedRoundRocks = roundRocks
-        .reduce<number[][]>((tiltedRoundRocks, row, i) => {
-            const newRow = row.map(([r, c]) => {
-                const tiltedRoundRocksAbove = tiltedRoundRocks.filter(
-                    (rc) => rc[0] < r && c === rc[1]
-                )
+            if (cell === "O") {
+                const cellAbove = grid[i - 1]?.[j]
 
-                const tiltedRoundRockAbove = tiltedRoundRocksAbove.sort(
-                    (rcA, rcB) => rcA[0] - rcB[0]
-                )[tiltedRoundRocksAbove.length - 1]
+                if (cellAbove === ".") {
+                    const cellsAbove = grid.slice(0, i).map((r) => r[j])
 
-                const squareRocksAbove = squareRocks.filter(
-                    (rc) => c === rc[1] && rc[0] <= r
-                )
+                    const lastHash = cellsAbove.lastIndexOf("#")
+                    const lastRock = cellsAbove.lastIndexOf("O")
 
-                const squareRockAbove = squareRocksAbove.sort(
-                    (rcA, rcB) => rcA[0] - rcB[0]
-                )[squareRocksAbove.length - 1]
+                    const lastBlock = Math.max(lastHash, lastRock)
+                    const lastDot = lastBlock + 1
 
-                if (!tiltedRoundRockAbove && !squareRockAbove) {
-                    return [0, c]
+                    grid[lastDot][j] = "O"
+                    grid[i][j] = "."
                 }
-
-                if (squareRockAbove && !tiltedRoundRockAbove) {
-                    return [squareRockAbove[0] + 1, c]
-                }
-
-                if (!squareRockAbove && tiltedRoundRockAbove) {
-                    return [tiltedRoundRockAbove[0] + 1, c]
-                }
-
-                if (tiltedRoundRockAbove[0] > squareRockAbove[0]) {
-                    return [tiltedRoundRockAbove[0] + 1, c]
-                }
-
-                if (squareRockAbove[0] > tiltedRoundRockAbove[0]) {
-                    return [squareRockAbove[0] + 1, c]
-                }
-
-                throw new Error("There is nothing above me?")
-            })
-
-            return [...tiltedRoundRocks, ...newRow]
-        }, [])
-        .sort((rcA, rcB) => {
-            if (rcA[0] !== rcB[0]) {
-                return rcA[0] - rcB[0]
             }
+        }
+    }
 
-            return rcA[1] - rcB[1]
-        })
-
-    return grid.map((row, r) =>
-        row.map((_, c) => {
-            if (tiltedRoundRocks.some((rc) => r === rc[0] && c === rc[1])) {
-                return "O"
-            }
-
-            if (squareRocks.some((rc) => r === rc[0] && c === rc[1])) {
-                return "#"
-            }
-
-            return "."
-        })
-    )
+    return grid
 }
 
 const calculateLoad = (grid: string[][]): string => {
@@ -100,6 +47,18 @@ const calculateLoad = (grid: string[][]): string => {
     return String(distancedFromBottom.reduce((sum, number) => sum + number))
 }
 
+const rotateGrid = (grid: string[][]): string[][] =>
+    grid[0].map((_, index) => grid.map((row) => row[index]).reverse())
+
+const performCycle = (grid: string[][]): string[][] => {
+    const tiltedNorth = tiltNorth(grid)
+    const tiltedWest = tiltNorth(rotateGrid(tiltedNorth))
+    const tiltedSouth = tiltNorth(rotateGrid(tiltedWest))
+    const tiltedEast = tiltNorth(rotateGrid(tiltedSouth))
+
+    return rotateGrid(tiltedEast)
+}
+
 export const part01 = (input: string): string => {
     const grid = parse(input)
 
@@ -108,4 +67,31 @@ export const part01 = (input: string): string => {
     return calculateLoad(titledGrid)
 }
 
-export const part02 = (input: string): string => input
+export const part02 = (input: string): string => {
+    const grid = parse(input)
+
+    const visited: string[] = []
+    let count = 0
+    let currentGrid = grid
+
+    while (!visited.includes(JSON.stringify(currentGrid))) {
+        visited.push(JSON.stringify(currentGrid))
+
+        currentGrid = performCycle(currentGrid)
+        count++
+    }
+
+    const loopsUntilNexStart =
+        count - visited.indexOf(JSON.stringify(currentGrid))
+
+    const initialLoopsToStart = visited.indexOf(JSON.stringify(currentGrid))
+
+    const remainingLoops =
+        (1000000000 - initialLoopsToStart) % loopsUntilNexStart
+
+    for (let i = 0; i < remainingLoops; i++) {
+        currentGrid = performCycle(currentGrid)
+    }
+
+    return calculateLoad(currentGrid)
+}
