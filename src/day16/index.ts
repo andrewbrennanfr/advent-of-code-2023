@@ -1,7 +1,7 @@
 const calculate = (
     grid: string[][],
     { r, c }: { r: number; c: number },
-    facing: "N" | "E" | "S" | "W",
+    facing: string,
     visited: Set<string>,
     energized: Set<string>
 ): void => {
@@ -152,4 +152,42 @@ export const part01 = (input: string): string => {
     return String(energized.size)
 }
 
-export const part02 = (input: string): string => input
+export const part02 = (input: string): string => {
+    const grid = parse(input)
+
+    const firstRow = grid[0].map((_, c) => ({
+        r: 0,
+        c,
+        facing: "S",
+    }))
+
+    const lastRow = grid[0].map((_, c) => ({
+        r: grid.length - 1,
+        c,
+        facing: "N",
+    }))
+
+    const firstCol = grid.map((_, r) => ({
+        r,
+        c: 0,
+        facing: "E",
+    }))
+
+    const lastCol = grid.map((_, r) => ({
+        r,
+        c: grid[0].length - 1,
+        facing: "W",
+    }))
+
+    const entries = [...firstRow, ...lastRow, ...firstCol, ...lastCol]
+
+    const calculations = entries.map(({ r, c, facing }) => {
+        const energized = new Set<string>()
+
+        calculate(grid, { r, c }, facing, new Set(), energized)
+
+        return energized.size
+    })
+
+    return String(Math.max(...calculations))
+}
