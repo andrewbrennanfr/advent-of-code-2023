@@ -9,8 +9,5 @@
   },
   "peerDependencies": {
     "typescript": "latest"
-  },
-  "dependencies": {
-    "fastpriorityqueue": "^0.7.4"
   }
 }

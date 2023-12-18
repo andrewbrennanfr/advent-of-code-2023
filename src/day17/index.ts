@@ -1,5 +1,3 @@
-import FastPriorityQueue from "fastpriorityqueue"
-
 const key = (rc: { r: number; c: number }, d: string, t: number): string =>
     `${rc.r}_${rc.c}_${d}_${t}`
 
@@ -37,16 +35,21 @@ export const part01 = (input: string): string => {
     const getWeight = (key: string): number => weights[key] ?? Infinity
 
     const visited = new Set<string>()
-    // const queue: [{ r: number; c: number }, string, number][] = [[start, "", 0]]
 
-    const prioQueye = new FastPriorityQueue((a, b) => {
-        return getWeight(key(...a)) < getWeight(key(...b))
-    })
+    const queue: Record<number, [{ r: number; c: number }, string, number][]> =
+        {
+            "0": [[start, "", 0]],
+        }
 
-    prioQueye.add([start, "", 0])
+    while (Object.keys(queue).length) {
+        const keys = Object.keys(queue)
+        const minKey = Math.min(...keys.map(Number))
 
-    while (!prioQueye.isEmpty()) {
-        const [current, direction, times] = prioQueye.poll()
+        const [current, direction, times] = queue[minKey].shift()
+
+        if (!queue[minKey].length) {
+            delete queue[minKey]
+        }
 
         const currentKey = key(current, direction, times)
 
@@ -72,17 +75,11 @@ export const part01 = (input: string): string => {
             if (possibleWeight < siblingWeight) {
                 weights[siblingKey] = possibleWeight
 
-                prioQueye.add([sibling, d, newTimes])
+                if (!queue[possibleWeight]) {
+                    queue[possibleWeight] = []
+                }
 
-                // const insert = queue.findIndex(
-                //     (item) => getWeight(key(...item)) >= possibleWeight
-                // )
-
-                // queue.splice(insert === -1 ? queue.length : insert, 0, [
-                //     sibling,
-                //     d,
-                //     newTimes,
-                // ])
+                queue[possibleWeight].push([sibling, d, newTimes])
             }
         })
 
@@ -94,8 +91,6 @@ export const part01 = (input: string): string => {
     const options = Object.entries(weights)
         .filter(([key]) => key.startsWith(`${end.r}_${end.c}_`))
         .map(([, weight]) => weight)
-
-    // console.warn(options)
 
     return String(Math.min(...options))
 }
@@ -118,16 +113,20 @@ export const part02 = (input: string): string => {
     const getWeight = (key: string): number => weights[key] ?? Infinity
 
     const visited = new Set<string>()
-    // const queue: [{ r: number; c: number }, string, number][] = [[start, "", 0]]
+    const queue: Record<number, [{ r: number; c: number }, string, number][]> =
+        {
+            "0": [[start, "", 0]],
+        }
 
-    const prioQueye = new FastPriorityQueue((a, b) => {
-        return getWeight(key(...a)) < getWeight(key(...b))
-    })
+    while (Object.keys(queue).length) {
+        const keys = Object.keys(queue)
+        const minKey = Math.min(...keys.map(Number))
 
-    prioQueye.add([start, "", 0])
+        const [current, direction, times] = queue[minKey].shift()
 
-    while (!prioQueye.isEmpty()) {
-        const [current, direction, times] = prioQueye.poll()
+        if (!queue[minKey].length) {
+            delete queue[minKey]
+        }
 
         const currentKey = key(current, direction, times)
 
@@ -169,30 +168,22 @@ export const part02 = (input: string): string => {
             if (possibleWeight <= siblingWeight) {
                 weights[siblingKey] = possibleWeight
 
-                prioQueye.add([sibling, d, newTimes])
+                if (!queue[possibleWeight]) {
+                    queue[possibleWeight] = []
+                }
 
-                // const insert = queue.findIndex(
-                //     (item) => getWeight(key(...item)) >= possibleWeight
-                // )
-
-                // queue.splice(insert === -1 ? queue.length : insert, 0, [
-                //     sibling,
-                //     d,
-                //     newTimes,
-                // ])
+                queue[possibleWeight].push([sibling, d, newTimes])
             }
         })
 
-        // if (current.r === end.r && current.c === end.c) {
-        //     break
-        // }
+        if (current.r === end.r && current.c === end.c) {
+            break
+        }
     }
 
     const options = Object.entries(weights)
         .filter(([key]) => key.startsWith(`${end.r}_${end.c}_`))
         .map(([, weight]) => weight)
-
-    // console.warn(options)
 
     return String(Math.min(...options))
 }

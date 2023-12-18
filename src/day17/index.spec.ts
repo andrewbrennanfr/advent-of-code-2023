@@ -7,7 +7,7 @@ describe("day17", () => {
     describe("part01", () => {
         test("example01", () => expect(part01(example01)).toEqual("102"))
 
-        test.skip("input01", () => expect(part01(input01)).toEqual("845"))
+        test("input01", () => expect(part01(input01)).toEqual("845"))
     })
 
     describe("part02", () => {
@@ -15,6 +15,6 @@ describe("day17", () => {
 
         test("example02", () => expect(part02(example02)).toEqual("71"))
 
-        test.skip("input01", () => expect(part02(input01)).toEqual("993"))
+        test("input01", () => expect(part02(input01)).toEqual("993"))
     })
 })
