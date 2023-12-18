@@ -1,3 +1,5 @@
+import FastPriorityQueue from "fastpriorityqueue"
+
 const key = (rc: { r: number; c: number }, d: string, t: number): string =>
     `${rc.r}_${rc.c}_${d}_${t}`
 
@@ -35,10 +37,16 @@ export const part01 = (input: string): string => {
     const getWeight = (key: string): number => weights[key] ?? Infinity
 
     const visited = new Set<string>()
-    const queue: [{ r: number; c: number }, string, number][] = [[start, "", 0]]
+    // const queue: [{ r: number; c: number }, string, number][] = [[start, "", 0]]
 
-    while (queue.length) {
-        const [current, direction, times] = queue.shift()
+    const prioQueye = new FastPriorityQueue((a, b) => {
+        return getWeight(key(...a)) < getWeight(key(...b))
+    })
+
+    prioQueye.add([start, "", 0])
+
+    while (!prioQueye.isEmpty()) {
+        const [current, direction, times] = prioQueye.poll()
 
         const currentKey = key(current, direction, times)
 
@@ -64,15 +72,17 @@ export const part01 = (input: string): string => {
             if (possibleWeight < siblingWeight) {
                 weights[siblingKey] = possibleWeight
 
-                const insert = queue.findIndex(
-                    (item) => getWeight(key(...item)) >= possibleWeight
-                )
+                prioQueye.add([sibling, d, newTimes])
 
-                queue.splice(insert === -1 ? queue.length : insert, 0, [
-                    sibling,
-                    d,
-                    newTimes,
-                ])
+                // const insert = queue.findIndex(
+                //     (item) => getWeight(key(...item)) >= possibleWeight
+                // )
+
+                // queue.splice(insert === -1 ? queue.length : insert, 0, [
+                //     sibling,
+                //     d,
+                //     newTimes,
+                // ])
             }
         })
 
