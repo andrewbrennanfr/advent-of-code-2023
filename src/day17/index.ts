@@ -95,9 +95,104 @@ export const part01 = (input: string): string => {
         .filter(([key]) => key.startsWith(`${end.r}_${end.c}_`))
         .map(([, weight]) => weight)
 
-    console.warn(options)
+    // console.warn(options)
 
     return String(Math.min(...options))
 }
 
-export const part02 = (input: string): string => input
+export const part02 = (input: string): string => {
+    const grid = parse(input)
+
+    const height = grid.length
+    const width = grid[0].length
+    const start = { r: 0, c: 0 }
+    const end = { r: height - 1, c: width - 1 }
+
+    const opposite = { E: "W", N: "S", S: "N", W: "E" }
+
+    const weights: Record<string, number> = {
+        [key(start, "", 0)]: 0,
+        [key(start, "E", 0)]: 0,
+        [key(start, "S", 0)]: 0,
+    }
+    const getWeight = (key: string): number => weights[key] ?? Infinity
+
+    const visited = new Set<string>()
+    // const queue: [{ r: number; c: number }, string, number][] = [[start, "", 0]]
+
+    const prioQueye = new FastPriorityQueue((a, b) => {
+        return getWeight(key(...a)) < getWeight(key(...b))
+    })
+
+    prioQueye.add([start, "", 0])
+
+    while (!prioQueye.isEmpty()) {
+        const [current, direction, times] = prioQueye.poll()
+
+        const currentKey = key(current, direction, times)
+
+        if (visited.has(currentKey)) continue
+
+        visited.add(currentKey)
+
+        Object.entries(siblings(current)).forEach(([d, sibling]) => {
+            if (grid[sibling.r]?.[sibling.c] === undefined) return
+
+            if (d === opposite[direction]) return
+
+            if (d === direction && times >= 10) return
+
+            if (d !== direction && direction && times < 4) return
+
+            if (d !== direction && direction) {
+                const nextSib = siblings(sibling)[d] // 2 moves
+                const nextNextSib = siblings(nextSib)[d] // 3 moves
+                const nextNextNextSib = siblings(nextNextSib)[d] // 4 moves
+
+                if (!grid[nextNextNextSib.r]?.[nextNextNextSib.c]) {
+                    return
+                }
+            }
+
+            // if (sibling.r === end.r && sibling.c === end.c) {
+            //     console.warn({ current, end })
+            // }
+
+            const newTimes = d === direction ? times + 1 : 1
+            const siblingKey = key(sibling, d, newTimes)
+
+            const siblingWeight = getWeight(siblingKey)
+            const currentWeight = getWeight(currentKey)
+
+            const possibleWeight = currentWeight + grid[sibling.r][sibling.c]
+
+            if (possibleWeight <= siblingWeight) {
+                weights[siblingKey] = possibleWeight
+
+                prioQueye.add([sibling, d, newTimes])
+
+                // const insert = queue.findIndex(
+                //     (item) => getWeight(key(...item)) >= possibleWeight
+                // )
+
+                // queue.splice(insert === -1 ? queue.length : insert, 0, [
+                //     sibling,
+                //     d,
+                //     newTimes,
+                // ])
+            }
+        })
+
+        // if (current.r === end.r && current.c === end.c) {
+        //     break
+        // }
+    }
+
+    const options = Object.entries(weights)
+        .filter(([key]) => key.startsWith(`${end.r}_${end.c}_`))
+        .map(([, weight]) => weight)
+
+    // console.warn(options)
+
+    return String(Math.min(...options))
+}
