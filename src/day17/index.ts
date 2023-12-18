@@ -1,4 +1,5 @@
-const key = ({ r, c }: { r: number; c: number }): string => `${r}_${c}`
+const key = (rc: { r: number; c: number }, d: string, t: number): string =>
+    `${rc.r}_${rc.c}_${d}_${t}`
 
 const parse = (input: string): number[][] =>
     input
@@ -6,17 +7,14 @@ const parse = (input: string): number[][] =>
         .split("\n")
         .map((row) => row.split("").map(Number))
 
-const siblings = ({
-    r,
-    c,
-}: {
+const siblings = (rc: {
     r: number
     c: number
 }): Record<"N" | "E" | "S" | "W", { r: number; c: number }> => ({
-    N: { r: r - 1, c },
-    E: { r, c: c + 1 },
-    S: { r: r + 1, c },
-    W: { r, c: c - 1 },
+    N: { r: rc.r - 1, c: rc.c },
+    E: { r: rc.r, c: rc.c + 1 },
+    S: { r: rc.r + 1, c: rc.c },
+    W: { r: rc.r, c: rc.c - 1 },
 })
 
 export const part01 = (input: string): string => {
@@ -27,40 +25,69 @@ export const part01 = (input: string): string => {
     const start = { r: 0, c: 0 }
     const end = { r: height - 1, c: width - 1 }
 
-    const weights = Array.from(Array(height), () => Array(width).fill(Infinity))
-    weights[start.r][start.c] = 0
+    const opposite = { E: "W", N: "S", S: "N", W: "E" }
+
+    const weights: Record<string, number> = {
+        [key(start, "", 0)]: 0,
+        [key(start, "E", 0)]: 0,
+        [key(start, "S", 0)]: 0,
+    }
+    const getWeight = (key: string): number => weights[key] ?? Infinity
 
     const visited = new Set<string>()
-    const queue = [start]
+    const queue: [{ r: number; c: number }, string, number][] = [[start, "", 0]]
 
     while (queue.length) {
-        const current = queue.shift()
+        const [current, direction, times] = queue.shift()
 
-        if (visited.has(key(current))) continue
+        const currentKey = key(current, direction, times)
 
-        visited.add(key(current))
+        if (visited.has(currentKey)) continue
 
-        Object.entries(siblings(current))
-            .filter(([, sibling]) => grid[sibling.r]?.[sibling.c] !== undefined)
-            .forEach(([, sibling]) => {
-                const currentWeight = weights[sibling.r][sibling.c]
-                const possibleWeight =
-                    weights[current.r][current.c] + grid[sibling.r][sibling.c]
+        visited.add(currentKey)
 
-                if (possibleWeight < currentWeight) {
-                    weights[sibling.r][sibling.c] = possibleWeight
-                    queue.push(sibling)
-                }
-            })
+        Object.entries(siblings(current)).forEach(([d, sibling]) => {
+            if (grid[sibling.r]?.[sibling.c] === undefined) return
 
-        queue.sort((rcA, rcB) => weights[rcA.r][rcA.c] - weights[rcB.r][rcB.c])
+            if (d === opposite[direction]) return
+
+            if (d === direction && times >= 3) return
+
+            const newTimes = d === direction ? times + 1 : 1
+            const siblingKey = key(sibling, d, newTimes)
+
+            const siblingWeight = getWeight(siblingKey)
+            const currentWeight = getWeight(currentKey)
+
+            const possibleWeight = currentWeight + grid[sibling.r][sibling.c]
+
+            if (possibleWeight < siblingWeight) {
+                weights[siblingKey] = possibleWeight
+
+                const insert = queue.findIndex(
+                    (item) => getWeight(key(...item)) >= possibleWeight
+                )
+
+                queue.splice(insert === -1 ? queue.length : insert, 0, [
+                    sibling,
+                    d,
+                    newTimes,
+                ])
+            }
+        })
+
+        if (current.r === end.r && current.c === end.c) {
+            break
+        }
     }
 
-    // weights.forEach((row) => {
-    //     console.warn(row)
-    // })
+    const options = Object.entries(weights)
+        .filter(([key]) => key.startsWith(`${end.r}_${end.c}_`))
+        .map(([, weight]) => weight)
 
-    return String(weights[end.r][end.c])
+    console.warn(options)
+
+    return String(Math.min(...options))
 }
 
 export const part02 = (input: string): string => input
